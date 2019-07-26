@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy load image</title>
+    <link rel="shortcut icon" href="image/favicon.ico" type="image/x-icon">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            font-size: 100%;
+            vertical-align: baseline;
+        }
+
+        .fade-in {
+            animation-name: fadeIn;
+            animation-duration: 1.3s;
+            animation-timing-function: cubic-bezier(0, 0, 0.4, 1);
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0.5;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .image {
+            background-color: #000;
+            display: block;
+            opacity: 0.5;
+            width: 100%;
+        }
+
+        .image-after,
+        .image-before  {
+            background-color: #000;
+            display: block;
+            opacity: 0.5;
+            width: 100%;
+            height: 600px;
+            width: 100%;
+            position: relative;
+
+        }
+
+        .image-after:before  {
+            position: absolute;
+            top: 20px;
+            right: -20px;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-image: var(--after-background);
+            background-position: center center;
+            background-size: cover;
+            content: "";
+        }
+
+        .image-before:before  {
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-image: var(--before-background);
+            background-position: center center;
+            background-size: cover;
+            content: "";
+        }
+
+        .image.lazy-img {
+            min-height: 100%;
+        }
+
+        .lab-section, 
+        .lab-section-description {
+            margin: 100px 0;
+        }
+
+        .lab-section-image {
+            height: 100vh;
+            background-color: #000;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: cover;
+            opacity: 0.5;
+        }
+
+        h1, h2 {
+            font-size: 24px;
+            line-height: 30px;
+            color: #484848;
+            margin: 0 0 20px;
+        }
+
+        h2 { margin: 30px 0 20px; } 
+
+        .text {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        p {
+            font-size: 14px;
+            line-height: 20px;
+            color: #484848;
+            margin: 0;
+        }
+
+        pre {
+            margin: 0;
+        }
+
+        @media (max-width: 767px) {
+            .image {
+                margin: 20px 0 0;
+            }
+
+            .lab-section,
+            .lab-section-description {
+                margin: 50px 0;
+            }
+
+            .lab-section-image {
+                height: 60vh;
+            }
+
+            .image-after,
+            .image-before  { 
+                margin-top: 30px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+    
+    <section class="lab-section-image lazy-background" data-background="image/04.jpg"> </section>
+
+    <section class="lab-section-description">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 offset-1">
+                        <h1>Carregamento sob demanda das imagens (lazy load)</h1>
+                        <p>Utilizando o <a href="https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API" target="_blank"><i>IntersectionObserver</i></a> para carregar as imagens quando aparecem na tela.</p>
+        <pre>
+        <code class="xml">
+        &lt;!-- Elemento load imagem --&gt;
+        &lt;img class="lazy-img" data-src="image/01.jpg" /&gt;
+    
+        &lt;!-- Elemento load background imagem -->
+        &lt;div class="lazy-background" data-background="image/01.jpg"&gt;&lt;/div&gt;
+
+        &lt;!-- Elemento load before background imagem -->
+        &lt;div class="lazy-before-background" data-before-background="image/01.jpg"&gt;&lt;/div&gt;
+        &lt;!-- css load before background imagem -->
+        .element-class:before { background-image: var(--before-background); }
+
+        &lt;!-- Elemento load after background imagem -->
+        &lt;div class="lazy-after-background" data-after-background="image/01.jpg"&gt;&lt;/div&gt;
+        &lt;!-- css load after background imagem -->
+        .element-class:before { background-image: var(--after-background); }
+        </code>
+        <code class="javascript">
+        // Inicialização com vanilla JS:
+    
+        // Inicia o script com o carregamento do dom da página
+        document.addEventListener("DOMContentLoaded", function() {
+    
+            // Define a classe dos elementos
+            var lazyImages = document.querySelectorAll('.lazy-img');
+            var lazyBackground = document.querySelectorAll('.lazy-background');
+            var lazyAfterBackground = document.querySelectorAll('.lazy-after-background');
+            var lazyBeforeBackground = document.querySelectorAll('.lazy-before-background');
+    
+            // Configurações do observador
+            var lazyConfig = {
+                // Quando a imagem fica dentro de 50px no eixo Y, inicia o download
+                rootMargin: '50px 0px',
+                threshold: 0.01
+            };
+    
+            // O observador das imagens na página
+            var lazyObserver = new IntersectionObserver(onIntersection, lazyConfig);
+    
+            // Percorre todas as imagens
+            lazyImages.forEach(image => {
+                lazyObserver.observe(image);
+            });
+    
+            // Percorre todos os elementos com background
+            lazyBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            // Percorre todos os elementos com background before
+            lazyBeforeBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            // Percorre todos os elementos com background after
+            lazyAfterBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+    
+            function onIntersection(entries) {
+                entries.forEach(entry => {
+                    // Testa se está no viewport
+                    if (entry.intersectionRatio > 0) {
+                        // Para de observar o elemento
+                        lazyObserver.unobserve(entry.target);
+                        preloadImage(entry.target);
+                    }
+                });
+            }
+    
+            // Carrega as imagens
+            function preloadImage(image) {
+                var lazyImage = image;
+                // Testa se é img ou background
+                if (lazyImage.dataset.src) {
+                    lazyImage.src = lazyImage.dataset.src;
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-img');
+                } else if (image.dataset.background) {
+                    lazyImage.style.backgroundImage = 'url(' + lazyImage.dataset.background + ')';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-background');
+                } else if (lazyImage.dataset.afterBackground) {
+                    lazyImage.style = '--after-background:url("' + lazyImage.dataset.afterBackground + '")';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-after-background');
+                } else if (lazyImage.dataset.beforeBackground) {
+                    lazyImage.style = '--before-background:url("' + lazyImage.dataset.beforeBackground + '")';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-before-background');
+                }
+            }
+        });
+        </code>
+        </pre>
+                                
+                    <p>Para funcionar em dispositivos movéis, utilizar bliblioteca do <a href="https://github.com/w3c/IntersectionObserver/tree/master/polyfill" target="_blank">IntersectionObserver</a></p>
+                
+                    <h2>Aplicações</h2>
+                    <p>Abaixo exemplos de aplicações do carregamento:</p>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="order-1 order-md-0 col-10 offset-1 col-md-5">
+                    <img class="image lazy-img" data-src="image/01.jpg" />
+                </div>
+                <div class="order-0 order-md-1 col-10 offset-1 col-md-5 offset-md-0">
+                    <div class="text">
+                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi a tellus ac tortor pharetra porta a eu quam. Donec convallis augue non gravida egestas. Nulla scelerisque lacus tempus volutpat finibus. In quis magna eu turpis faucibus venenatis. Fusce felis arcu, volutpat vel risus a, lacinia consectetur nulla. Nullam blandit, augue ac ornare ultricies, lacus mauris rutrum leo, ut pretium nisi nulla eget tortor. Nullam nulla ligula, placerat vitae bibendum sed, scelerisque id ipsum. Curabitur iaculis at elit quis ultricies. Nulla blandit quis ante id vestibulum.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 offset-1 col-md-5">
+                    <div class="text">
+                        <p>Quisque sagittis dignissim diam, sit amet accumsan lorem pulvinar eget. Sed turpis mi, porttitor a elit a, placerat viverra urna. Aliquam nisl ex, fermentum eu vulputate accumsan, malesuada sit amet tellus. Mauris id pretium neque, at imperdiet turpis. Aliquam erat volutpat. Fusce semper dui et scelerisque maximus. Sed hendrerit leo iaculis elit lacinia efficitur. Morbi tristique lacus mi, varius aliquet nisi pulvinar eu. Donec vel interdum velit, sit amet bibendum arcu. Fusce luctus velit quis elit elementum blandit. Donec eget sodales velit. Morbi vel nunc odio. Duis eleifend leo a ligula aliquam rhoncus. Aliquam rutrum aliquet gravida. Donec posuere scelerisque porta. Nunc quis tellus in tortor hendrerit rhoncus rutrum nec nisl.</p>     
+                    </div>
+                </div>
+                <div class="col-10 offset-1 col-md-5 offset-md-0">
+                    <img class="image lazy-img" data-src="image/02.jpg" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section-image lazy-background" data-background="image/03.jpg"></section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 col-md-4 offset-1">
+                        <div class="text">
+                            <p>
+                                Imagem load background after
+                            </p>
+                        </div>
+                    </div>
+                <div class="col-10 col-md-5 offset-1">
+                    <div class="image-after lazy-after-background" data-after-background="image/07.jpg"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="order-1 order-md-0 col-10 col-md-5 offset-1">
+                    <div class="image-before lazy-before-background" data-before-background="image/08.jpg"></div>
+                </div>
+                <div class="order-0 order-md-1 col-10 col-md-4 offset-1">
+                    <div class="text">
+                        <p>
+                            Imagem load background before
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="order-1 order-md-0 col-10 offset-1 col-md-5">
+                    <img class="image lazy-img" data-src="image/05.jpg" />
+                </div>
+                <div class="order-0 order-md-1 col-10 offset-1 col-md-5 offset-md-0">
+                    <div class="text">
+                        <p>Vivamus elementum augue odio, ut pulvinar dui condimentum id. Pellentesque accumsan dictum vulputate. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum eget ante in nisi tempor varius. Nulla at mauris quis orci mattis laoreet. Sed dapibus elit et nulla imperdiet tincidunt. Donec pellentesque massa eget mollis porttitor. Pellentesque congue, neque a sagittis aliquam, lorem lectus dapibus nulla, nec euismod tellus est sed libero. Nulla vel porta odio, fermentum bibendum velit.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 offset-1 col-md-5">
+                    <div class="text">
+                        <p>Fusce dapibus efficitur congue. In ut velit eu sapien fringilla dignissim et sed mauris. Duis bibendum ipsum ut dolor dapibus facilisis. Ut tristique molestie nisi. Cras sed aliquet massa. Cras sed rutrum ex. Mauris sagittis nisi at venenatis varius. Quisque rhoncus ligula vel molestie varius. Nunc scelerisque augue in laoreet tincidunt. In gravida sapien metus. Quisque semper libero risus, ut elementum erat ornare in. Sed rutrum ligula nec sem placerat varius.</p>   
+                    </div>
+                </div>
+                <div class="col-10 offset-1 col-md-5 offset-md-0">
+                    <img class="image lazy-img" data-src="image/06.jpg" />
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="lab-section">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-10 offset-1">
+                    <p>
+                        por: Marcelo Pianesso (<a href="https://github.com/marcelopianesso" target="_blank">@marcelopianesso</a>)
+                    </p>
+                    <br>
+                    <p>
+                        referências: <br>
+                        https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API<br>
+                        https://github.com/w3c/IntersectionObserver/tree/master/polyfill<br>
+                        https://deanhume.com/lazy-loading-images-using-intersection-observer/
+                    </p>
+                    <br>
+                    <p>
+                        images: <br>
+                        https://unsplash.com/
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.9.1/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <script src="js/intersection-observer.js"></script>
+    <script>
+        // Inicia o script com o carregamento do dom da página
+        document.addEventListener("DOMContentLoaded", function() {
+            // Define a classe dos elementos
+            var lazyImages = document.querySelectorAll('.lazy-img');
+            var lazyBackground = document.querySelectorAll('.lazy-background');
+            var lazyAfterBackground = document.querySelectorAll('.lazy-after-background');
+            var lazyBeforeBackground = document.querySelectorAll('.lazy-before-background');
+
+            // Configurações do observador
+            var lazyConfig = {
+                // Quando a imagem fica dentro de 50px no eixo Y, inicia o download
+                rootMargin: '50px 0px',
+                threshold: 0.01
+            };
+
+            // O observador das imagens na página
+            var lazyObserver = new IntersectionObserver(onIntersection, lazyConfig);
+
+            // Percorre todas as imagens
+            lazyImages.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            // Percorre todos os elementos com background
+            lazyBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            // Percorre todos os elementos com background before
+            lazyBeforeBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            // Percorre todos os elementos com background after
+            lazyAfterBackground.forEach(image => {
+                lazyObserver.observe(image);
+            });
+
+            function onIntersection(entries) {
+                entries.forEach(entry => {
+                    // Testa se está no viewport
+                    if (entry.intersectionRatio > 0) {
+                        // Para de observar o elemento
+                        lazyObserver.unobserve(entry.target);
+                        preloadImage(entry.target);
+                    }
+                });
+            }
+
+            // Carrega as imagens
+            function preloadImage(image) {
+                var lazyImage = image;
+                // Testa se é img ou background
+                if (lazyImage.dataset.src) {
+                    lazyImage.src = lazyImage.dataset.src;
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-img');
+                } else if (image.dataset.background) {
+                    lazyImage.style.backgroundImage = 'url(' + lazyImage.dataset.background + ')';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-background');
+                } else if (lazyImage.dataset.afterBackground) {
+                    lazyImage.style = '--after-background:url("' + lazyImage.dataset.afterBackground + '")';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-after-background');
+                } else if (lazyImage.dataset.beforeBackground) {
+                    lazyImage.style = '--before-background:url("' + lazyImage.dataset.beforeBackground + '")';
+                    lazyImage.classList.add('fade-in');
+                    lazyImage.classList.remove('lazy-before-background');
+                }
+            }
+
+           /*
+            * Referências 
+            * https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+            * https://github.com/w3c/IntersectionObserver/tree/master/polyfill
+            * https://deanhume.com/lazy-loading-images-using-intersection-observer/
+            */
+        });
+    </script>
+</body>
+</html>
