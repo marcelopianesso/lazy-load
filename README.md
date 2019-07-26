@@ -1,4 +1,4 @@
-#Carregamento sob demanda das imagens (lazy load)
+# Carregamento sob demanda das imagens (lazy load)
 
 Utilizando o IntersectionObserver para carregar as imagens quando aparecem na tela.
 
